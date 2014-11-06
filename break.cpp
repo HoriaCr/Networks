@@ -20,7 +20,7 @@ string exec(const char* cmd) {
 
 void generate(int len,string pass, vector<char>& alph) {
     if (len == static_cast<int>(pass.size())) {
-        string networkName = "Info boyz";
+        string networkName = "Mynet";
         string connCmd =  "sudo iwconfig wlan0 essid \"" + networkName  +"\" key s:" + pass;
         string arpCmd = "arp -a";
         string resp = exec(connCmd.c_str()); 
