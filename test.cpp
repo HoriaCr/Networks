@@ -41,7 +41,9 @@ vector< string > parse(string str) {
     vector<string> ret;
     istringstream iss(str);
     string line;
+    int lineIndex = 0;
     while (getline(iss, line)) {
+        if (++lineIndex <= 2) continue;
         istringstream ss(line);
         vector<string> tokens;
         string token;
@@ -49,8 +51,8 @@ vector< string > parse(string str) {
             tokens.push_back(token);
         }
         
-        if (tokens.size() > 3) { 
-            ret.push_back(toUpper(tokens[3]));    
+        if (tokens.size() > 1 && (int)tokens[1].size() == 17) { 
+            ret.push_back(toUpper(tokens[1]));    
         }
     }   
 
@@ -88,7 +90,7 @@ int main(int argc,char* argv[]) {
     }
    
     while (1) {
-        vector<string> addresses = parse(exec("arp -a")); 
+        vector<string> addresses = parse(exec("sudo arp-scan -localnet")); 
         vector<string> stored = readAddresses("mac.txt");
         sort(begin(addresses), end(addresses));
         sort(begin(stored), end(stored));
