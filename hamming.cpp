@@ -71,6 +71,15 @@ class BitSet {
             }
         }
 
+        void operator <<= (uint32_t k) {
+            for (int i = static_cast<int>(size) - k - 1; i >= 0; i--) {
+               int j = i + k;
+               data[j >> 6] &= ~(1 << (j & 31));
+               data[j >> 6] |= (data[i >> 6] >> (i & 31)) << (j & 31);
+               data[i >> 6] &= ~(1 << (i & 31));
+            }
+        }
+
         bool xorSum() {
             uint32_t ret = 0;
             for (uint32_t i = 0; i < size; i++) {
@@ -105,7 +114,7 @@ class BitSet {
             for (uint32_t i = 0, j = 0; i < size; i++) {
                 // skip powers of two
                 while ((j & (j + 1)) == 0) j++; 
-                cout << i  << " " << j << ":" << (data[i >> 6] >> (i & 31) & 1) << "\n";
+              //  cout << i  << " " << j << ":" << (data[i >> 6] >> (i & 31) & 1) << "\n";
                 // copy
                 ret.data[j >> 6] |= (data[i >> 6] >> (i & 31) & 1) << (j & 31); 
                 j++;
@@ -146,9 +155,32 @@ class BitSet {
             out << b.toString(); 
             return out;
         }
+
+        BitSet range(uint32_t a,uint32_t b) {
+            BitSet ret(b - a + 1);
+            for (uint32_t i = a; i <= b; i++) {
+                if ( (data[i >> 6] >> (i & 31) & 1) == 1) {
+                    ret ^= (i - a); 
+                }
+            }
+            return ret;
+        }
+
+        BitSet crc3Division() {
+            // msb poly x^3 + x^1 + 1 = 0
+            int s[4] = {1, 0, 1, 1};
+            for (uint32_t i = 0; i < size - 4; i++) {
+                if (((data[i >> 6] >> (i & 31)) & 1) == 0) continue;
+                for (uint32_t j = 0; j < 4; j++) {
+                    data[ (i + j) >> 6] ^= s[j] << ((i + j) & 31);
+                }
+            }
+            return range(size - 3, size - 1);
+        }
+
 };
 
-int main() {
+void testHamming() {
     string code = "01001101";
     BitSet s(code);
     BitSet h = s.getHammingCode();
@@ -158,6 +190,36 @@ int main() {
     string correctCode = h.toString();
     // break a bit at a random position
     h ^= randPos;
+    cout << h.toString() << "\n";
+    cout << h.detectError() << "\n";
     h.fixError();
     assert(h.toString() == correctCode);
+
+}
+
+ bool crc3(string code) {
+     string padded = code + "000";
+     BitSet a(padded);
+     string r = a.crc3Division().toString();
+     string check = code + r;
+     BitSet b(check);
+     cout << "code :" << code << "\n";
+     cout << check << "\n";
+     b ^= 3; // error
+     string ret = b.crc3Division().toString();
+
+     if (ret == string(3,'0')) {
+        return true;
+     }
+     return false;
+}
+
+
+void testCrc3() {
+    string code = "11010111110010";
+    cout << crc3(code) << "\n";
+}
+
+int main() {
+    testCrc3();
 }

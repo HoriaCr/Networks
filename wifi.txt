@@ -1,6 +1,0 @@
-
-# encriptie WEP 5/13 caractere ascii
-sudo iwconfig wlan0 essid "instagram" key s:"berex"
-
-arp -a
-
